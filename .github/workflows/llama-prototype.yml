@@ -60,11 +60,13 @@ jobs:
             -DGGML_BLAS=OFF \
             -DGGML_OPENMP=OFF \
             -S . 2>&1 | grep -E "Target:|Including|error" | head -5
-          # 找到 xcodeproj 并构建
+          # 找到 xcodeproj 并构建(llama 库 target)
           XCPROJ=$(find build-ios -name "*.xcodeproj" -maxdepth 2 | head -1)
           echo "找到工程: $XCPROJ"
+          echo "=== targets ==="
+          xcodebuild -list -project "$XCPROJ" 2>&1 | sed -n '/Targets:/,/Build Configurations:/p' | head -15
           xcodebuild -project "$XCPROJ" \
-            -target ALL_BUILD \
+            -target llama \
             -configuration Release \
             -sdk iphoneos \
             SYMROOT=/tmp/llama-build \
