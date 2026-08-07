@@ -190,8 +190,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-framework",
-					"llama",
+					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/llama.framework/llama",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.minis.llamaprototype;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -234,8 +233,7 @@
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-framework",
-					"llama",
+					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/llama.framework/llama",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.minis.llamaprototype;
 				PRODUCT_NAME = "$(TARGET_NAME)";
