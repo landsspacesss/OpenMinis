@@ -56,7 +56,7 @@
     modelParams.use_mmap = false;          // iSH 无关,iOS 上更稳
     modelParams.n_gpu_layers = 999;        // 全部层放 GPU(Metal)
 
-    _model = llama_load_model_from_file([path UTF8String], modelParams);
+    _model = llama_model_load_from_file([path UTF8String], modelParams);
     if (!_model) {
         if (error) {
             *error = [NSError errorWithDomain:@"LlamaBridge"
@@ -73,7 +73,7 @@
 
     _ctx = llama_init_from_model(_model, ctxParams);
     if (!_ctx) {
-        llama_free_model(_model);
+        llama_model_free(_model);
         _model = nullptr;
         if (error) {
             *error = [NSError errorWithDomain:@"LlamaBridge"
@@ -109,8 +109,16 @@
         std::string promptStr = std::string([prompt UTF8String]);
         std::string result;
 
-        // 分词
-        std::vector<llama_token> tokens = llama_tokenize(_model, promptStr, true, true);
+        // 分词(新版 C API:传入 vocab 和缓冲区)
+        const llama_vocab * vocab = llama_model_get_vocab(_model);
+        std::vector<llama_token> tokens(512);
+        int32_t nTokens = llama_tokenize(vocab, promptStr.c_str(), promptStr.size(),
+                                         tokens.data(), (int32_t)tokens.size(), true, true);
+        if (nTokens < 0) {
+            if (completion) completion(@"", NO, @"分词失败");
+            return;
+        }
+        tokens.resize(nTokens);
 
         // 一次性提交 prompt(简化原型)
         llama_batch batch = llama_batch_init(tokens.size(), 0, 1);
@@ -175,7 +183,7 @@
 - (void)unloadModel {
     if (_sampler) { llama_sampler_free(_sampler); _sampler = nullptr; }
     if (_ctx) { llama_free(_ctx); _ctx = nullptr; }
-    if (_model) { llama_free_model(_model); _model = nullptr; }
+    if (_model) { llama_model_free(_model); _model = nullptr; }
     _loaded = NO;
 }
 
