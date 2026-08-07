@@ -59,15 +59,27 @@ jobs:
           # 找到实际生成的 xcodeproj 名(project 名含点,如 llama.cpp.xcodeproj)
           XCPROJ=$(find build-ios -name "*.xcodeproj" -maxdepth 2 | head -1)
           echo "找到工程: $XCPROJ"
-          # scheme 名也对应
-          SCHEME=$(basename "$XCPROJ" .xcodeproj)
+          # 列出可用的 scheme/target
+          echo "=== xcodebuild -list ==="
+          xcodebuild -list -project "$XCPROJ" 2>&1 | head -25
+          # 尝试构建 llama target(scheme 可能不存在,用 -target 更稳)
           xcodebuild -project "$XCPROJ" \
-            -scheme "$SCHEME" \
+            -target llama \
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -derivedDataPath build-ios-dd \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-            build 2>&1 | tail -15
+            build 2>&1 | tail -15 || {
+              # target llama 不存在则试 all
+              echo "llama target 失败,试 ALL_BUILD..."
+              xcodebuild -project "$XCPROJ" \
+                -target ALL_BUILD \
+                -configuration Release \
+                -destination 'generic/platform=iOS' \
+                -derivedDataPath build-ios-dd \
+                CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+                build 2>&1 | tail -15
+            }
           echo "=== 静态库产物 ==="
           find build-ios-dd -name "*.a" | head -12
 
