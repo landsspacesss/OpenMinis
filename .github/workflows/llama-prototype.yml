@@ -21,7 +21,9 @@ jobs:
           swift --version
           cmake --version | head -1
 
-      # ============ 1. 编译 llama.cpp XCFramework (Metal) ============
+      # ============ 1. 编译 llama.cpp 静态库 (iOS device + Metal) ============
+      # 官方 build-xcframework.sh 在 Xcode 15 下 ios-device 切片静默失败,
+      # 改用 cmake 直接编 iOS arm64 静态库
       - name: Checkout llama.cpp
         uses: actions/checkout@v4
         with:
@@ -29,37 +31,57 @@ jobs:
           ref: master
           path: llama-cpp
 
-      - name: Build llama.cpp XCFramework
+      - name: Build llama.cpp static lib (iOS device + Metal)
         working-directory: llama-cpp
         run: |
-          # 官方脚本: iOS arm64 + simulator arm64, Metal 加速
-          chmod +x build-xcframework.sh
-          ./build-xcframework.sh > /tmp/xc-build.log 2>&1 || {
-            echo "=== xcframework 构建失败,错误日志尾部 ==="
-            tail -50 /tmp/xc-build.log
-            exit 1
-          }
-          echo "=== 构建成功 ==="
-          ls -la build-apple/
-          echo "=== ios 切片 ==="
-          ls build-apple/llama.xcframework/ 2>/dev/null | grep ios
-          echo "=== device 切片确认 ==="
-          ls build-apple/llama.xcframework/ios-arm64/llama.framework/ 2>/dev/null | head -8
+          cmake -B build-ios -G Xcode \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_SYSROOT=iphoneos \
+            -DCMAKE_OSX_ARCHITECTURES="arm64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0 \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DLLAMA_BUILD_APP=OFF \
+            -DLLAMA_BUILD_COMMON=OFF \
+            -DLLAMA_BUILD_EXAMPLES=OFF \
+            -DLLAMA_BUILD_TOOLS=OFF \
+            -DLLAMA_BUILD_TESTS=OFF \
+            -DLLAMA_BUILD_SERVER=OFF \
+            -DLLAMA_BUILD_MTMD=ON \
+            -DGGML_METAL=ON \
+            -DGGML_METAL_EMBED_LIBRARY=ON \
+            -DGGML_BLAS=OFF \
+            -DGGML_OPENMP=OFF \
+            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
+            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO \
+            -S .
+          xcodebuild -project build-ios/llama.xcodeproj \
+            -scheme llama \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build-ios-dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tail -15
+          echo "=== 静态库产物 ==="
+          find build-ios-dd -name "libllama.a" -o -name "libggml*.a" | head -10
 
-      - name: Locate and copy XCFramework
+      - name: Copy libs and headers
         run: |
-          XCF=$(find llama-cpp -name "*.xcframework" -maxdepth 3 -type d | head -1)
-          echo "找到 xcframework: $XCF"
-          if [ -z "$XCF" ]; then
-            echo "::error::llama.cpp 未产出 xcframework"
-            exit 1
-          fi
-          mkdir -p prototype/Frameworks
-          cp -r "$XCF" prototype/Frameworks/
-          echo "=== xcframework 结构 ==="
-          find prototype/Frameworks -maxdepth 4 -type d | head -25
-          echo "=== Headers ==="
-          find prototype/Frameworks -name "llama.h" | head -3
+          mkdir -p prototype/llama-libs
+          # 静态库
+          find llama-cpp/build-ios-dd -name "*.a" -exec cp {} prototype/llama-libs/ \; 2>/dev/null
+          ls -la prototype/llama-libs/ | head -15
+          # 头文件
+          mkdir -p prototype/llama-libs/include
+          cp llama-cpp/include/llama.h prototype/llama-libs/include/
+          cp llama-cpp/ggml/include/*.h prototype/llama-libs/include/ 2>/dev/null
+          ls prototype/llama-libs/include/ | head -12
+
+      - name: Locate and copy libs
+        run: |
+          echo "=== 静态库列表 ==="
+          ls -la prototype/llama-libs/
+          echo "=== 头文件 ==="
+          ls prototype/llama-libs/include/ | head -15
 
       # ============ 2. 工程文件已手写(pbxproj, Xcode 15 兼容格式) ============
       - name: Setup project structure
