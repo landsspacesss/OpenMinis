@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-26-arm64
     timeout-minutes: 120
 
     steps:
@@ -53,17 +53,13 @@ jobs:
           echo "=== Headers ==="
           find prototype/Frameworks -name "llama.h" | head -3
 
-      # ============ 2. 生成 Xcode 工程 ============
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate Xcode project
+      # ============ 2. 工程文件已手写(pbxproj, Xcode 15 兼容格式) ============
+      - name: Setup project structure
         working-directory: prototype
         run: |
-          xcodegen generate
-          ls -la
-          echo "=== 工程生成结果 ==="
-          ls *.xcodeproj
+          # pbxproj 已提交在 prototype/LlamaPrototype.xcodeproj/project.pbxproj
+          ls -la LlamaPrototype.xcodeproj/
+          ls -la LlamaPrototype.xcodeproj/project.pbxproj || echo "⚠️ pbxproj 缺失"
 
       # ============ 3. 编译 app (device, 无签名) ============
       - name: Build app for device
