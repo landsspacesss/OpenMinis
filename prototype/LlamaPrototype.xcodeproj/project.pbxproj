@@ -175,7 +175,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Frameworks/ios-arm64/rnllama.framework/Headers",
+					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/Headers",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -191,7 +191,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
-					"rnllama",
+					"llama",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.minis.llamaprototype;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -225,7 +225,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Frameworks/ios-arm64/rnllama.framework/Headers",
+					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/Headers",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -235,7 +235,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
-					"rnllama",
+					"llama",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.minis.llamaprototype;
 				PRODUCT_NAME = "$(TARGET_NAME)";
