@@ -34,13 +34,19 @@ jobs:
       - name: Build llama.cpp static lib (iOS device + Metal)
         working-directory: llama-cpp
         run: |
-          # 用 xcodebuild 直接构建,不依赖 xcframework 脚本
-          # 关键:CMAKE_SYSTEM_NAME=iOS 需要配合 -G Xcode 使用
+          # 手写 iOS toolchain,强制 iOS 目标(直接 -DCMAKE_SYSTEM_NAME 在 macOS host 上被忽略)
+          cat > /tmp/ios-toolchain.cmake << 'EOF'
+          set(CMAKE_SYSTEM_NAME iOS)
+          set(CMAKE_SYSTEM_VERSION 17.0)
+          set(CMAKE_OSX_SYSROOT iphoneos)
+          set(CMAKE_OSX_ARCHITECTURES arm64)
+          set(CMAKE_C_COMPILER_WORKS TRUE)
+          set(CMAKE_CXX_COMPILER_WORKS TRUE)
+          set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO)
+          set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED NO)
+          EOF
           cmake -B build-ios -G Xcode \
-            -DCMAKE_SYSTEM_NAME=iOS \
-            -DCMAKE_OSX_SYSROOT=iphoneos \
-            -DCMAKE_OSX_ARCHITECTURES="arm64" \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0 \
+            -DCMAKE_TOOLCHAIN_FILE=/tmp/ios-toolchain.cmake \
             -DBUILD_SHARED_LIBS=OFF \
             -DLLAMA_BUILD_APP=OFF \
             -DLLAMA_BUILD_COMMON=OFF \
@@ -53,23 +59,19 @@ jobs:
             -DGGML_METAL_EMBED_LIBRARY=ON \
             -DGGML_BLAS=OFF \
             -DGGML_OPENMP=OFF \
-            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
-            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO \
-            -S .
-          # 找到实际生成的 xcodeproj 名(project 名含点,如 llama.cpp.xcodeproj)
+            -S . 2>&1 | grep -E "Target:|Including|error" | head -5
+          # 找到 xcodeproj 并构建
           XCPROJ=$(find build-ios -name "*.xcodeproj" -maxdepth 2 | head -1)
           echo "找到工程: $XCPROJ"
-          # 列出可用的 scheme/target
-          echo "=== xcodebuild -list ==="
-          xcodebuild -list -project "$XCPROJ" 2>&1 | head -25
-          # target 模式不支持 -derivedDataPath,用 SYMROOT 控制输出
           xcodebuild -project "$XCPROJ" \
             -target ALL_BUILD \
             -configuration Release \
             -sdk iphoneos \
             SYMROOT=/tmp/llama-build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-            build 2>&1 | tail -15
+            build 2>&1 | tail -12
+          echo "=== 静态库产物 ==="
+          find /tmp/llama-build -name "*.a" | head -12
           echo "=== 静态库产物 ==="
           find /tmp/llama-build -name "*.a" | head -12
 
