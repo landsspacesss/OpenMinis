@@ -31,10 +31,11 @@ jobs:
             "https://github.com/ggml-org/llama.cpp/releases/download/b10326/llama-b10326-xcframework.zip"
           ls -lh /tmp/llama-xc.zip
           unzip -q /tmp/llama-xc.zip -d prototype/Frameworks/
+          # 官方 zip 内是 build-apple/llama.xcframework,移到标准位置
+          find prototype/Frameworks -name "llama.xcframework" -maxdepth 4 -exec mv {} prototype/Frameworks/ \;
+          rm -rf prototype/Frameworks/build-apple
           echo "=== xcframework 结构 ==="
-          find prototype/Frameworks -name "*.xcframework" -maxdepth 3
-          echo "=== 切片列表 ==="
-          find prototype/Frameworks -name "*.xcframework" -maxdepth 3 -exec ls {} \;
+          ls prototype/Frameworks/llama.xcframework/
           echo "=== Headers ==="
           find prototype/Frameworks -name "llama.h" | head -5
 
