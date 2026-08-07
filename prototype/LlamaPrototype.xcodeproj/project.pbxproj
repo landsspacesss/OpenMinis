@@ -7,11 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		100000000000000000000020 /* llama.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 100000000000000000000009 /* llama.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		100000000000000000000001 /* LlamaBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000002 /* LlamaBridge.mm */; };
 		100000000000000000000003 /* LlamaPrototypeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000004 /* LlamaPrototypeApp.swift */; };
 		100000000000000000000005 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000006 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		10000000000000000000001F /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				100000000000000000000020 /* llama.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 /* Begin PBXFileReference section */
 		100000000000000000000002 /* LlamaBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = LlamaBridge.mm; sourceTree = "<group>"; };
 		100000000000000000000007 /* LlamaBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LlamaBridge.h; sourceTree = "<group>"; };
@@ -87,6 +101,7 @@
 				100000000000000000000013 /* Sources */,
 				10000000000000000000000A /* Frameworks */,
 				100000000000000000000014 /* Resources */,
+				10000000000000000000001F /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
