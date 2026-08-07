@@ -53,7 +53,6 @@
     }
 
     llama_model_params modelParams = llama_model_default_params();
-    modelParams.use_mmap = false;          // iSH 无关,iOS 上更稳
     modelParams.n_gpu_layers = 999;        // 全部层放 GPU(Metal)
 
     _model = llama_model_load_from_file([path UTF8String], modelParams);
@@ -141,7 +140,6 @@
 
         // 生成循环
         std::vector<llama_token> generated;
-        const llama_vocab * vocab = llama_model_get_vocab(_model);
         int64_t start = llama_time_us();
         for (int32_t i = 0; i < maxTokens; i++) {
             // 采样
@@ -160,9 +158,8 @@
         int64_t elapsed = llama_time_us() - start;
         double tokensPerSec = elapsed > 0 ? (generated.size() * 1000000.0) / (double)elapsed : 0.0;
 
-        // 转文本(新版 API:第一个参数是 vocab)
+        // 转文本(新版 API:第一个参数是 vocab,已在上面声明)
         char buf[64];
-        const llama_vocab * vocab = llama_model_get_vocab(_model);
         for (llama_token t : generated) {
             int n = llama_token_to_piece(vocab, t, buf, sizeof(buf), 0, true);
             if (n > 0) {
