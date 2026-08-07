@@ -49,7 +49,7 @@ jobs:
           mkdir -p prototype/Frameworks
           cp -r "$XCF" prototype/Frameworks/
           echo "=== xcframework 结构 ==="
-          find prototype/Frameworks -maxdepth 3 -type d | head -20
+          find prototype/Frameworks -maxdepth 4 -type d | head -25
           echo "=== Headers ==="
           find prototype/Frameworks -name "llama.h" | head -3
 
