@@ -30,14 +30,20 @@ jobs:
           curl -sL --max-time 600 -o /tmp/llama-xc.zip \
             "https://github.com/ggml-org/llama.cpp/releases/download/b10326/llama-b10326-xcframework.zip"
           ls -lh /tmp/llama-xc.zip
-          unzip -q /tmp/llama-xc.zip -d prototype/Frameworks/
-          # 官方 zip 内是 build-apple/llama.xcframework,移到标准位置
-          find prototype/Frameworks -name "llama.xcframework" -maxdepth 4 -exec mv {} prototype/Frameworks/ \;
-          rm -rf prototype/Frameworks/build-apple
+          cd prototype/Frameworks
+          unzip -q /tmp/llama-xc.zip
+          # 找到 xcframework(可能在子目录),移到标准位置
+          XCF=$(find . -name "llama.xcframework" -maxdepth 3 -type d | head -1)
+          echo "找到 xcframework: $XCF"
+          if [ -z "$XCF" ]; then
+            echo "解压后内容:"; find . -maxdepth 3 | head -20
+            exit 1
+          fi
+          mv "$XCF" ./llama.xcframework
           echo "=== xcframework 结构 ==="
-          ls prototype/Frameworks/llama.xcframework/
+          ls llama.xcframework/
           echo "=== Headers ==="
-          find prototype/Frameworks -name "llama.h" | head -5
+          find llama.xcframework -name "llama.h" | head -3
 
       - name: Setup project structure
         working-directory: prototype
