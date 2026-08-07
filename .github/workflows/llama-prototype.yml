@@ -34,9 +34,17 @@ jobs:
         run: |
           # 官方脚本: iOS arm64 + simulator arm64, Metal 加速
           chmod +x build-xcframework.sh
-          ./build-xcframework.sh 2>&1 | tail -20
-          echo "=== 产物 ==="
-          ls -la build-apple/ 2>/dev/null || ls -la *.xcframework 2>/dev/null || find . -name "*.xcframework" -maxdepth 3 2>/dev/null
+          ./build-xcframework.sh > /tmp/xc-build.log 2>&1 || {
+            echo "=== xcframework 构建失败,错误日志尾部 ==="
+            tail -50 /tmp/xc-build.log
+            exit 1
+          }
+          echo "=== 构建成功 ==="
+          ls -la build-apple/
+          echo "=== ios 切片 ==="
+          ls build-apple/llama.xcframework/ 2>/dev/null | grep ios
+          echo "=== device 切片确认 ==="
+          ls build-apple/llama.xcframework/ios-arm64/llama.framework/ 2>/dev/null | head -8
 
       - name: Locate and copy XCFramework
         run: |
