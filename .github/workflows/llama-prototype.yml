@@ -73,15 +73,16 @@ jobs:
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
             build 2>&1 | tail -12
           echo "=== 静态库产物 ==="
-          find /tmp/llama-build -name "*.a" | head -12
+          find build-ios -path "*Release-iphoneos*" -name "*.a" | head -12
           echo "=== 静态库产物 ==="
-          find /tmp/llama-build -name "*.a" | head -12
+          find build-ios -path "*Release-iphoneos*" -name "*.a" | head -12
 
       - name: Copy libs and headers
         run: |
           mkdir -p prototype/llama-libs
           # 静态库
-          find /tmp/llama-build -name "*.a" -exec cp {} prototype/llama-libs/ \; 2>/dev/null
+          find build-ios -path "*Release-iphoneos*" -name "*.a" -exec cp {} prototype/llama-libs/ \; 2>/dev/null
+          ls -la build-ios/src/Release-iphoneos/*.a 2>/dev/null | head
           ls -la prototype/llama-libs/ | head -15
           # 头文件
           mkdir -p prototype/llama-libs/include
