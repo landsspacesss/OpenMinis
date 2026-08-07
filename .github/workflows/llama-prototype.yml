@@ -21,83 +21,23 @@ jobs:
           swift --version
           cmake --version | head -1
 
-      # ============ 1. 编译 llama.cpp 静态库 (iOS device + Metal) ============
-      # 官方 build-xcframework.sh 在 Xcode 15 下 ios-device 切片静默失败,
-      # 改用 cmake 直接编 iOS arm64 静态库
-      - name: Checkout llama.cpp
-        uses: actions/checkout@v4
-        with:
-          repository: ggml-org/llama.cpp
-          ref: master
-          path: llama-cpp
-
-      - name: Build llama.cpp static lib (iOS device + Metal)
-        working-directory: llama-cpp
+      # ============ 1. 下载预编译的 llama.cpp xcframework ============
+      # 直接使用 llama.rn(PocketPal 同款)发布的预编译 iOS xcframework,
+      # 包含 ios-arm64(device, Metal)切片,绕开所有 cmake/Xcode 编译坑
+      - name: Download prebuilt llama xcframework
         run: |
-          # 手写 iOS toolchain,强制 iOS 目标(直接 -DCMAKE_SYSTEM_NAME 在 macOS host 上被忽略)
-          cat > /tmp/ios-toolchain.cmake << 'EOF'
-          set(CMAKE_SYSTEM_NAME iOS)
-          set(CMAKE_SYSTEM_VERSION 17.0)
-          set(CMAKE_OSX_SYSROOT iphoneos)
-          set(CMAKE_OSX_ARCHITECTURES arm64)
-          set(CMAKE_C_COMPILER_WORKS TRUE)
-          set(CMAKE_CXX_COMPILER_WORKS TRUE)
-          set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO)
-          set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED NO)
-          EOF
-          cmake -B build-ios -G Xcode \
-            -DCMAKE_TOOLCHAIN_FILE=/tmp/ios-toolchain.cmake \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DLLAMA_BUILD_APP=OFF \
-            -DLLAMA_BUILD_COMMON=OFF \
-            -DLLAMA_BUILD_EXAMPLES=OFF \
-            -DLLAMA_BUILD_TOOLS=OFF \
-            -DLLAMA_BUILD_TESTS=OFF \
-            -DLLAMA_BUILD_SERVER=OFF \
-            -DLLAMA_BUILD_MTMD=ON \
-            -DGGML_METAL=ON \
-            -DGGML_METAL_EMBED_LIBRARY=ON \
-            -DGGML_BLAS=OFF \
-            -DGGML_OPENMP=OFF \
-            -S . 2>&1 | grep -E "Target:|Including|error" | head -5
-          # 找到 xcodeproj 并构建(llama 库 target)
-          XCPROJ=$(find build-ios -name "*.xcodeproj" -maxdepth 2 | head -1)
-          echo "找到工程: $XCPROJ"
-          echo "=== targets ==="
-          xcodebuild -list -project "$XCPROJ" 2>&1 | sed -n '/Targets:/,/Build Configurations:/p' | head -15
-          xcodebuild -project "$XCPROJ" \
-            -target llama \
-            -configuration Release \
-            -sdk iphoneos \
-            SYMROOT=/tmp/llama-build \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-            build 2>&1 | tail -12
-          echo "=== 静态库产物 ==="
-          find build-ios -path "*Release-iphoneos*" -name "*.a" | head -12
-          echo "=== 静态库产物 ==="
-          find build-ios -path "*Release-iphoneos*" -name "*.a" | head -12
+          mkdir -p prototype/Frameworks
+          echo "下载 llama-rn-ios-xcframework..."
+          curl -sL --max-time 500 -o /tmp/llama-xc.tar.gz \
+            "https://github.com/mybigday/llama.rn/releases/download/v0.12.9/llama-rn-ios-xcframework.tar.gz"
+          ls -lh /tmp/llama-xc.tar.gz
+          tar xzf /tmp/llama-xc.tar.gz -C prototype/Frameworks/
+          echo "=== xcframework 结构 ==="
+          find prototype/Frameworks -name "rnllama.xcframework" -maxdepth 4
+          echo "=== device 切片确认 ==="
+          find prototype/Frameworks -path "*ios-arm64*" -name "rnllama" | head -3
+          find prototype/Frameworks -name "rn-llama.h" | head -2
 
-      - name: Copy libs and headers
-        run: |
-          mkdir -p prototype/llama-libs
-          # 静态库
-          find build-ios -path "*Release-iphoneos*" -name "*.a" -exec cp {} prototype/llama-libs/ \; 2>/dev/null
-          ls -la build-ios/src/Release-iphoneos/*.a 2>/dev/null | head
-          ls -la prototype/llama-libs/ | head -15
-          # 头文件
-          mkdir -p prototype/llama-libs/include
-          cp llama-cpp/include/llama.h prototype/llama-libs/include/
-          cp llama-cpp/ggml/include/*.h prototype/llama-libs/include/ 2>/dev/null
-          ls prototype/llama-libs/include/ | head -12
-
-      - name: Locate and copy libs
-        run: |
-          echo "=== 静态库列表 ==="
-          ls -la prototype/llama-libs/
-          echo "=== 头文件 ==="
-          ls prototype/llama-libs/include/ | head -15
-
-      # ============ 2. 工程文件已手写(pbxproj, Xcode 15 兼容格式) ============
       - name: Setup project structure
         working-directory: prototype
         run: |
