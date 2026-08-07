@@ -65,6 +65,7 @@ jobs:
       - name: Build app for device
         working-directory: prototype
         run: |
+          set -o pipefail
           xcodebuild build \
             -project LlamaPrototype.xcodeproj \
             -scheme LlamaPrototype \
