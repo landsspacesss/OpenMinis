@@ -175,7 +175,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/Headers",
+					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/llama.framework/Headers",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -225,7 +225,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/Headers",
+					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/llama.framework/Headers",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
