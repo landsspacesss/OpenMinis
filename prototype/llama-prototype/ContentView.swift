@@ -77,18 +77,17 @@ struct ContentView: View {
         isGenerating = true
         output = "加载模型并推理中...(首次加载约 10-30 秒)"
         DispatchQueue.global(qos: .userInitiated).async { [self] in
-            var loadError: NSError?
-            let loaded = bridge.loadModel(atPath: modelPath, error: &loadError)
-            if !loaded {
-                DispatchQueue.main.async {
-                    output = "模型加载失败: \(loadError?.localizedDescription ?? "未知错误")"
-                    isGenerating = false
+            do {
+                try bridge.loadModel(atPath: modelPath)
+                bridge.generate(withPrompt: prompt, maxTokens: 64) { text, success, error in
+                    DispatchQueue.main.async {
+                        output = success ? text : "推理失败: \(error ?? "未知错误")"
+                        isGenerating = false
+                    }
                 }
-                return
-            }
-            bridge.generate(withPrompt: prompt, maxTokens: 64) { text, success, error in
+            } catch {
                 DispatchQueue.main.async {
-                    output = success ? text : "推理失败: \(error ?? "未知错误")"
+                    output = "模型加载失败: \(error.localizedDescription)"
                     isGenerating = false
                 }
             }
