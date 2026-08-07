@@ -133,11 +133,12 @@
 
         // 生成循环
         std::vector<llama_token> generated;
+        const llama_vocab * vocab = llama_model_get_vocab(_model);
         int64_t start = llama_time_us();
         for (int32_t i = 0; i < maxTokens; i++) {
             // 采样
             llama_token newToken = llama_sampler_sample(_sampler, _ctx, -1);
-            if (newToken == llama_vocab_eos(_model)) {
+            if (newToken == llama_vocab_eos(vocab)) {
                 break;
             }
             generated.push_back(newToken);
