@@ -34,6 +34,8 @@ jobs:
       - name: Build llama.cpp static lib (iOS device + Metal)
         working-directory: llama-cpp
         run: |
+          # 用 xcodebuild 直接构建,不依赖 xcframework 脚本
+          # 关键:CMAKE_SYSTEM_NAME=iOS 需要配合 -G Xcode 使用
           cmake -B build-ios -G Xcode \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_SYSROOT=iphoneos \
@@ -54,15 +56,20 @@ jobs:
             -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
             -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO \
             -S .
-          xcodebuild -project build-ios/llama.xcodeproj \
-            -scheme llama \
+          # 找到实际生成的 xcodeproj 名(project 名含点,如 llama.cpp.xcodeproj)
+          XCPROJ=$(find build-ios -name "*.xcodeproj" -maxdepth 2 | head -1)
+          echo "找到工程: $XCPROJ"
+          # scheme 名也对应
+          SCHEME=$(basename "$XCPROJ" .xcodeproj)
+          xcodebuild -project "$XCPROJ" \
+            -scheme "$SCHEME" \
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -derivedDataPath build-ios-dd \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
             build 2>&1 | tail -15
           echo "=== 静态库产物 ==="
-          find build-ios-dd -name "libllama.a" -o -name "libggml*.a" | head -10
+          find build-ios-dd -name "*.a" | head -12
 
       - name: Copy libs and headers
         run: |
