@@ -21,22 +21,22 @@ jobs:
           swift --version
           cmake --version | head -1
 
-      # ============ 1. 下载预编译的 llama.cpp xcframework ============
-      # 直接使用 llama.rn(PocketPal 同款)发布的预编译 iOS xcframework,
-      # 包含 ios-arm64(device, Metal)切片,绕开所有 cmake/Xcode 编译坑
-      - name: Download prebuilt llama xcframework
+      # ============ 1. 下载 llama.cpp 官方预编译 XCFramework ============
+      # 官方 release 提供 xcframework(含 iOS device + Metal 切片)
+      - name: Download official llama.cpp XCFramework
         run: |
           mkdir -p prototype/Frameworks
-          echo "下载 llama-rn-ios-xcframework..."
-          curl -sL --max-time 500 -o /tmp/llama-xc.tar.gz \
-            "https://github.com/mybigday/llama.rn/releases/download/v0.12.9/llama-rn-ios-xcframework.tar.gz"
-          ls -lh /tmp/llama-xc.tar.gz
-          tar xzf /tmp/llama-xc.tar.gz -C prototype/Frameworks/
+          echo "下载 llama.cpp 官方 xcframework..."
+          curl -sL --max-time 600 -o /tmp/llama-xc.zip \
+            "https://github.com/ggml-org/llama.cpp/releases/download/b10326/llama-b10326-xcframework.zip"
+          ls -lh /tmp/llama-xc.zip
+          unzip -q /tmp/llama-xc.zip -d prototype/Frameworks/
           echo "=== xcframework 结构 ==="
-          find prototype/Frameworks -name "rnllama.xcframework" -maxdepth 4
-          echo "=== device 切片确认 ==="
-          find prototype/Frameworks -path "*ios-arm64*" -name "rnllama" | head -3
-          find prototype/Frameworks -name "rn-llama.h" | head -2
+          find prototype/Frameworks -name "*.xcframework" -maxdepth 3
+          echo "=== 切片列表 ==="
+          find prototype/Frameworks -name "*.xcframework" -maxdepth 3 -exec ls {} \;
+          echo "=== Headers ==="
+          find prototype/Frameworks -name "llama.h" | head -5
 
       - name: Setup project structure
         working-directory: prototype
