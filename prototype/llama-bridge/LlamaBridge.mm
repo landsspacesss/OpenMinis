@@ -151,10 +151,11 @@
         int64_t elapsed = llama_time_us() - start;
         double tokensPerSec = elapsed > 0 ? (generated.size() * 1000000.0) / (double)elapsed : 0.0;
 
-        // 转文本
+        // 转文本(新版 API:第一个参数是 vocab)
         char buf[64];
+        const llama_vocab * vocab = llama_model_get_vocab(_model);
         for (llama_token t : generated) {
-            int n = llama_token_to_piece(_model, t, buf, sizeof(buf), 0, true);
+            int n = llama_token_to_piece(vocab, t, buf, sizeof(buf), 0, true);
             if (n > 0) {
                 result.append(buf, n);
             }
