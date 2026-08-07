@@ -26,7 +26,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				10000000000000000000000B /* llama.xcframework in Frameworks */,
+
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,7 +175,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/llama.framework/Headers",
+					"$(SRCROOT)/llama-libs/include",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -190,6 +190,12 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
+					"-L$(SRCROOT)/llama-libs",
+					"-lllama",
+					"-lggml",
+					"-lggml-base",
+					"-lggml-cpu",
+					"-lggml-metal",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.minis.llamaprototype;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -223,7 +229,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Frameworks/llama.xcframework/ios-arm64/llama.framework/Headers",
+					"$(SRCROOT)/llama-libs/include",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -232,6 +238,12 @@
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
+					"-L$(SRCROOT)/llama-libs",
+					"-lllama",
+					"-lggml",
+					"-lggml-base",
+					"-lggml-cpu",
+					"-lggml-metal",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.minis.llamaprototype;
 				PRODUCT_NAME = "$(TARGET_NAME)";
