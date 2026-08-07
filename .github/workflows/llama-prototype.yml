@@ -62,32 +62,22 @@ jobs:
           # 列出可用的 scheme/target
           echo "=== xcodebuild -list ==="
           xcodebuild -list -project "$XCPROJ" 2>&1 | head -25
-          # 尝试构建 llama target(scheme 可能不存在,用 -target 更稳)
+          # target 模式不支持 -derivedDataPath,用 SYMROOT 控制输出
           xcodebuild -project "$XCPROJ" \
-            -target llama \
+            -target ALL_BUILD \
             -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -derivedDataPath build-ios-dd \
+            -sdk iphoneos \
+            SYMROOT=/tmp/llama-build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-            build 2>&1 | tail -15 || {
-              # target llama 不存在则试 all
-              echo "llama target 失败,试 ALL_BUILD..."
-              xcodebuild -project "$XCPROJ" \
-                -target ALL_BUILD \
-                -configuration Release \
-                -destination 'generic/platform=iOS' \
-                -derivedDataPath build-ios-dd \
-                CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-                build 2>&1 | tail -15
-            }
+            build 2>&1 | tail -15
           echo "=== 静态库产物 ==="
-          find build-ios-dd -name "*.a" | head -12
+          find /tmp/llama-build -name "*.a" | head -12
 
       - name: Copy libs and headers
         run: |
           mkdir -p prototype/llama-libs
           # 静态库
-          find llama-cpp/build-ios-dd -name "*.a" -exec cp {} prototype/llama-libs/ \; 2>/dev/null
+          find /tmp/llama-build -name "*.a" -exec cp {} prototype/llama-libs/ \; 2>/dev/null
           ls -la prototype/llama-libs/ | head -15
           # 头文件
           mkdir -p prototype/llama-libs/include
