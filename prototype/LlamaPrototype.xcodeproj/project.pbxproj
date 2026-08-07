@@ -175,7 +175,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/llama-libs/include",
+					"$(SRCROOT)/Frameworks/ios-arm64/rnllama.framework/Headers",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -190,12 +190,8 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-L$(SRCROOT)/llama-libs",
-					"-lllama",
-					"-lggml",
-					"-lggml-base",
-					"-lggml-cpu",
-					"-lggml-metal",
+					"-framework",
+					"rnllama",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.minis.llamaprototype;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -229,7 +225,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/llama-libs/include",
+					"$(SRCROOT)/Frameworks/ios-arm64/rnllama.framework/Headers",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -238,12 +234,8 @@
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-L$(SRCROOT)/llama-libs",
-					"-lllama",
-					"-lggml",
-					"-lggml-base",
-					"-lggml-cpu",
-					"-lggml-metal",
+					"-framework",
+					"rnllama",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.minis.llamaprototype;
 				PRODUCT_NAME = "$(TARGET_NAME)";
